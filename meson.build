@@ -21,7 +21,6 @@ sysconfdir = prefix / get_option('sysconfdir')
 profile = get_option('profile')
 build_ui = get_option('ui')
 build_cli = get_option('cli')
-ci = get_option('ci')
 win_build_environment_path = get_option('win-build-environment-path')
 win_installer_name = get_option('win-installer-name')
 
@@ -75,7 +74,6 @@ cargo = find_program('cargo', required: true)
 # cmake is needed by the "ink-stroke-modeler-rs" bindings crate to build the C++ library
 find_program('cmake', required: true)
 find_program('glib-compile-resources', required: true)
-cargo_nextest = find_program('cargo-nextest', required: false)
 glib_compile_schemas = find_program('glib-compile-schemas', required: true)
 desktop_file_validate = find_program('desktop-file-validate', required: false)
 appstreamcli = find_program('appstreamcli', required: false)
@@ -127,32 +125,22 @@ run_target(
     env: cargo_env,
 )
 
-# cargo tests
-if cargo_nextest.found()
-    nextest_args = [
-        'nextest',
-        '--manifest-path',
-        cargo_manifest_path,
-        'run',
-        '--workspace',
-        '--target-dir',
-        cargo_target_dir,
-    ]
-    if ci == true
-        nextest_args += [
-            '--profile',
-            'ci',
-        ]
-    endif
-    run_target(
-        'cargo-test',
-        command: [
-            cargo,
-            nextest_args
+# cargo test
+run_target(
+    'cargo-test',
+    command: [
+        cargo,
+        [
+            'test',
+            '--workspace',
+            '--manifest-path',
+            cargo_manifest_path,
+            '--target-dir',
+            cargo_target_dir,
         ],
-        env: cargo_env,
-    )
-endif
+    ],
+    env: cargo_env,
+)
 
 # cargo clean
 run_target(
